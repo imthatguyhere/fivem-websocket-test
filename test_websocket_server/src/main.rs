@@ -10,7 +10,6 @@ use tokio::net::TcpListener;
 use crate::config::Config;
 use tracing_subscriber;
 use std::error::Error;
-use std::fmt;
 
 /// Application entry point
 #[tokio::main]
@@ -21,7 +20,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
   //=-- Load config from disk
   let config: Config = Config::load("config.toml").map_err(|e| {
     tracing::error!("❌ Failed to load config.toml: {}", e);
-    fmt::Error  // Using fmt::Error as a simple error type
+    e  //=-- Propagate the original error
   })?;
   let shared = Arc::new(config);
 
