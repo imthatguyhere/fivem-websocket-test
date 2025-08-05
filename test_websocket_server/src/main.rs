@@ -30,7 +30,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     .with_state(shared.clone());
 
   let addr = SocketAddr::new(
-    shared.bind_ip.parse().map_err(|_| "Invalid bind_ip in config.toml")?,
+    shared.bind_ip.parse().map_err(|e| {
+      tracing::error!("Invalid bind_ip in config.toml: {}", e);
+      e
+    })?,
     shared.bind_port,
   );
 
