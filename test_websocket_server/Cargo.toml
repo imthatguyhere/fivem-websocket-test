@@ -1,0 +1,16 @@
+[package]
+name        = "test_websocket_server"
+version     = "0.1.0"
+edition     = "2021"
+
+[dependencies]
+tokio               = { version = "1",     features = ["rt-multi-thread", "macros", "net", "time", "sync"] }
+axum                = { version = "0.8.4", features = ["ws"] }
+hyper               = { version = "1.6.0", features = ["server"] }
+serde               = { version = "1",     features = ["derive"] }
+toml                = "0.9.5"
+chrono              = "0.4"
+futures             = "0.3"
+tokio-util          = "0.7"
+tracing             = "0.1"
+tracing-subscriber  = "0.3"
