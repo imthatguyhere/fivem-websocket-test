@@ -8,6 +8,7 @@ use tokio::sync::Mutex;
 use tokio::time::{interval, Duration};
 use crate::config::Config;
 use tracing;
+use tokio_util::sync::CancellationToken;
 
 /// Handle a WebSocket connection with heartbeat and incoming message logging
 ///
@@ -19,19 +20,28 @@ pub async fn handle_socket(socket: WebSocket, config: Arc<Config>) {
     let sender = Arc::new(Mutex::new(sender));
 
     let hb_sender = sender.clone();
+    let cancel_token = CancellationToken::new();
+    let heartbeat_cancel = cancel_token.clone();
 
     //=-- Spawn the heartbeat task
     tokio::spawn(async move {
         let mut ticker = interval(Duration::from_secs(interval_secs));
         loop {
-            ticker.tick().await;
-            let timestamp = Local::now();
-            let msg = format!("💓 Heartbeat Sent @ {}", timestamp.format("%Y-%m-%d--%H-%M-%S"));
-            tracing::info!("{}", msg);
-            let mut guard = hb_sender.lock().await;
-            if guard.send(Message::Text(msg.into())).await.is_err() {
-                tracing::warn!("❌ Client disconnected during heartbeat");
-                break;
+            tokio::select! {
+                _ = ticker.tick() => {
+                    let timestamp = Local::now();
+                    let msg = format!("💓 Heartbeat Sent @ {}", timestamp.format("%Y-%m-%d--%H-%M-%S"));
+                    tracing::info!("{}", msg);
+                    let mut guard = hb_sender.lock().await;
+                    if guard.send(Message::Text(msg.into())).await.is_err() {
+                        tracing::warn!("❌ Client disconnected during heartbeat");
+                        break;
+                    }
+                }
+                _ = heartbeat_cancel.cancelled() => {
+                    tracing::info!("🛑 Heartbeat task cancelled");
+                    break;
+                }
             }
         }
     });
@@ -60,5 +70,7 @@ pub async fn handle_socket(socket: WebSocket, config: Arc<Config>) {
         }
     }
 
+    // Cancel the heartbeat task when the connection closes
+    cancel_token.cancel();
     tracing::info!("💀 WebSocket connection closed");
 }
