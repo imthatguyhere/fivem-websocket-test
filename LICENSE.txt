@@ -1,0 +1,92 @@
+NEON-DYSTOPIA NON-COMMERCIAL ATTRIBUTION ACCESS PROTOCOL v1.0 (ND-NCAAP v1.0)
+
+A Cyber-Contract of Shadows, by Imthatguyhere (ITGH | Tyler)
+
+════════════════════════════════════════════════════════════════════
+   IN THE DIGITAL FRONTIER, CODE IS CURRENCY. THIS LICENSE IS LAW.
+════════════════════════════════════════════════════════════════════
+
+In the dim glow of endless terminal windows, amid a fractured grid ruled by algorithms and ambition, this agreement governs the use of the Work created by Imthatguyhere (ITGH | Tyler) — a construct of code forged with intention, precision, and digital spirit.
+
+╔══════════════════════════════════════════╗
+║ I. CODE OF ATTRIBUTION — RESPECT THE TAG ║
+╚══════════════════════════════════════════╝
+
+1.1 The Work may be utilized, examined, executed, or modified only if clear and visible credit is maintained, in all environments where the Work exists.
+
+1.2 This attribution must include the creator's full identifier:
+
+    "Imthatguyhere (ITGH | Tyler)"
+
+and be displayed in a manner relevant to the platform (ex: file headers, documentation, UI credits, metadata, etc).
+
+1.3 Removal, minimization, or obfuscation, of this attribution is considered a violation of this protocol.
+
+╔══════════════════════════════════════════════╗
+║ II. NON-COMMERCIAL USAGE — NO CORPORATE GAIN ║
+╚══════════════════════════════════════════════╝
+
+2.1 The Work is provided exclusively for non-commercial use. It may not be used in any context that produces or contributes to revenue, advertising, fundraising, or monetized delivery.
+
+2.2 This restriction applies across all platforms, currencies (including fiat and cryptocurrencies), and forms of barter or transactional exchange.
+
+2.3 Projects utilizing this Work in any form of commercial ecosystem must secure explicit written permission from the Author.
+
+╔═════════════════════════════════════════╗
+║ III. MODIFICATION — THE HACKER’S CLAUSE ║
+╚═════════════════════════════════════════╝
+
+3.1 Modification of the Work is permitted and encouraged within the boundaries of creative integrity.
+
+3.2 Any modified version:
+   - Must maintain attribution per Article I.
+   - Must be released under the same non-commercial conditions.
+   - Must not misrepresent the origin or authorship.
+
+3.3 Use of the Work as a foundation for another project does not imply ownership or authorship of the original Work.
+
+╔═══════════════════════════════════════════════════════╗
+║ IV. INTELLECTUAL SOVEREIGNTY — OWNERSHIP IS RETAINED  ║
+╚═══════════════════════════════════════════════════════╝
+
+4.1 The original creator, Imthatguyhere (ITGH | Tyler), retains full and exclusive intellectual rights to the Work.
+
+4.2 This license grants limited use rights only, and no portion of this license shall be interpreted as a transfer of ownership, authorship, or legacy.
+
+4.3 Any unauthorized claim of ownership shall be considered a breach of the Protocol and subject to revocation of access.
+
+╔═════════════════════════════════════════════════════╗
+║ V. LIABILITY — THE DISCLAIMER OF CYBER CONSEQUENCES ║
+╚═════════════════════════════════════════════════════╝
+
+5.1 The Work is provided “AS IS”, with no guarantees or warranties, expressed or implied.
+
+5.2 The Author assumes no responsibility for:
+   - Functional or non-functional outcomes,
+   - Data loss, corruption, or instability,
+   - Unexpected interactions with other systems,
+   - Or any philosophical crises triggered by the code’s complexity.
+
+╔════════════════════════════════════════════════════╗
+║ VI. VIOLATIONS — THE ENCRYPTED ENFORCEMENT CLAUSE  ║
+╚════════════════════════════════════════════════════╝
+
+6.1 Any breach of this license — particularly those involving attribution removal or unauthorized commercial use — may result in:
+
+   - Takedown notices,
+   - Public listing in open-source violation records,
+   - Revocation of permission to use or redistribute the Work,
+   - And general reputational consequences within digital communities.
+
+6.2 Continued use of the Work constitutes acceptance of these terms.
+
+════════════════════════════════════════════════════════════════
+  THIS DOCUMENT SERVES AS A BINDING AGREEMENT WITHIN THE SCOPE
+          OF DIGITAL RIGHTS LAW AND CREATIVE ETHICS.
+════════════════════════════════════════════════════════════════
+
+Signed — in the distributed ledger of time:
+
+Imthatguyhere (ITGH | Tyler)  
+2025-08-05
+License Version: ND-NCAAP v1.0
