@@ -1,5 +1,5 @@
 # FiveM Client Websocket Test
-![License: ND-NCAAP v1.0](https://img.shields.io/badge/license-ND--NCAAP%20v1.0-blueviolet.svg)
+[![License: ND-NCAAP v1.0](https://img.shields.io/badge/license-ND--NCAAP%20v1.0-blueviolet.svg)](LICENSE.txt)
 
 ## Description
 This repository contains everything needed to test a client resource in FiveM using websockets via the CEF implementation, using NUI.
