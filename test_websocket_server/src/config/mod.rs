@@ -2,6 +2,7 @@
 
 use serde::Deserialize;
 use std::fs;
+use std::error::Error;
 
 /// Configuration loaded from `config.toml`
 #[derive(Debug, Deserialize)]
@@ -20,10 +21,11 @@ impl Config {
     /// # Arguments
     /// * `path` - Path to the `config.toml` file
     ///
-    /// # Panics
-    /// Panics if the file cannot be read or parsed
-    pub fn load(path: &str) -> Self {
-        let content = fs::read_to_string(path).expect("Could not read config.toml");
-        toml::from_str(&content).expect("Invalid config format")
+    /// # Errors
+    /// Returns an error if the file cannot be read or parsed.
+    pub fn load(path: &str) -> Result<Self, Box<dyn Error>> {
+        let content = fs::read_to_string(path)?;
+        let config = toml::from_str(&content)?;
+        Ok(config)
     }
 }

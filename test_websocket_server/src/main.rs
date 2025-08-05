@@ -13,7 +13,13 @@ use crate::config::Config;
 #[tokio::main]
 async fn main() {
   //=-- Load config from disk
-  let config: Config = Config::load("config.toml");
+  let config: Config = match Config::load("config.toml") {
+    Ok(config) => config,
+    Err(e) => {
+      eprintln!("❌ Failed to load config.toml: {}", e);
+      std::process::exit(1); //=-- Exit on failure to load the config file
+    }
+  };
   let shared = Arc::new(config);
 
   //=-- Define the router with WebSocket route and shared state
