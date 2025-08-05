@@ -1,4 +1,4 @@
-# Fivem Client Websocket Test
+# FiveM Client Websocket Test
 ![License: ND-NCAAP v1.0](https://img.shields.io/badge/license-ND--NCAAP%20v1.0-blueviolet.svg)
 
 ## Description
