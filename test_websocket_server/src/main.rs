@@ -8,15 +8,19 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use crate::config::Config;
+use tracing_subscriber;
 
 /// Application entry point
 #[tokio::main]
 async fn main() {
+  //=-- Initialize tracing
+  tracing_subscriber::fmt::init();
+  
   //=-- Load config from disk
   let config: Config = match Config::load("config.toml") {
     Ok(config) => config,
     Err(e) => {
-      eprintln!("❌ Failed to load config.toml: {}", e);
+      tracing::error!("❌ Failed to load config.toml: {}", e);
       std::process::exit(1); //=-- Exit on failure to load the config file
     }
   };
@@ -36,7 +40,7 @@ async fn main() {
   let listener = TcpListener::bind(addr).await
     .expect("Failed to bind to address");
   
-  println!("📡 Listening on ws://{}", addr);
+  tracing::info!("📡 Listening on ws://{}", addr);
   
   axum::serve(listener, app)
     .await

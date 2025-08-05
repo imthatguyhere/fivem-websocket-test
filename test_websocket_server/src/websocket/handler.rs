@@ -7,6 +7,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::time::{interval, Duration};
 use crate::config::Config;
+use tracing;
 
 /// Handle a WebSocket connection with heartbeat and incoming message logging
 ///
@@ -26,10 +27,10 @@ pub async fn handle_socket(socket: WebSocket, config: Arc<Config>) {
             ticker.tick().await;
             let timestamp = Local::now();
             let msg = format!("💓 Heartbeat Sent @ {}", timestamp.format("%Y-%m-%d--%H-%M-%S"));
-            println!("{}", msg);
+            tracing::info!("{}", msg);
             let mut guard = hb_sender.lock().await;
             if guard.send(Message::Text(msg.into())).await.is_err() {
-                println!("❌ Client disconnected during heartbeat");
+                tracing::warn!("❌ Client disconnected during heartbeat");
                 break;
             }
         }
@@ -39,25 +40,25 @@ pub async fn handle_socket(socket: WebSocket, config: Arc<Config>) {
     while let Some(Ok(msg)) = receiver.next().await {
         match msg {
             Message::Text(text) => {
-                println!(
+                tracing::info!(
                     "📥 Received @ {}: {}",
                     Local::now().format("%Y-%m-%d--%H-%M-%S"),
                     text
                 );
             }
             Message::Binary(_) => {
-                println!(
+                tracing::info!(
                     "📥 Received binary @ {}",
                     Local::now().format("%Y-%m-%d--%H-%M-%S")
                 );
             }
             Message::Close(_) => {
-                println!("👋 Client disconnected");
+                tracing::info!("👋 Client disconnected");
                 break;
             }
             _ => {}
         }
     }
 
-    println!("💀 WebSocket connection closed");
+    tracing::info!("💀 WebSocket connection closed");
 }
