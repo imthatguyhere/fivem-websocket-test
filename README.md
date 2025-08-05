@@ -4,6 +4,9 @@
 ## Description
 This repository contains everything needed to test a client resource in FiveM using websockets via the CEF implementation, using NUI.
 
+## Usage
+<Instructions TBD>
+
 ## 📜 License Summary: ND-NCAAP v1.0
 
 ```plaintext
