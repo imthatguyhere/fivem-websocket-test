@@ -23,5 +23,5 @@ This project is licensed under the **Neon-Dystopia Non-Commercial Attribution Ac
 - 👁️ **Ownership Retained:** No transfer of ownership. The creator maintains full intellectual sovereignty.
 - ⚖️ **Liability Disclaimer:** The code is provided *as is*. Use at your own risk/discretion. **No warranties**.
 
-Full license text available in [`LICENSE.txt`](./LICENSE.txt)
+Full license text available in [`LICENSE.txt`](LICENSE.txt)
 
