@@ -1,2 +1,4 @@
 test_websocket_server/target/*
 !test_websocket_server/target/.gitkeep
+ITGH_websocket_test_client/nui/js/*
+!ITGH_websocket_test_client/nui/js/.gitkeep

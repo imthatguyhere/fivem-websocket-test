@@ -8,16 +8,17 @@ version '1.0.0'
 
 client_scripts({
 	"client/client_main.lua",
+	"shared/shared_config.lua",
 })
 
 server_scripts({
 	"server/server_main.lua",
+	"shared/shared_config.lua",
 })
 
 files({
-	"nui/build/index.html",
-	"nui/build/assets/*.js",
-	"nui/build/assets/*.css",
+	"nui/index.html",
+	"nui/js/*.js",
 })
 
-ui_page("nui/build/index.html")
+ui_page("nui/index.html")

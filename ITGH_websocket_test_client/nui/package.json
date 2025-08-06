@@ -1,0 +1,19 @@
+{
+  "name": "fivem-websocket-test-client",
+  "version": "1.0.0",
+  "description": "FiveM NUI WebSocket Test Client",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "author": "Imthatguyhere (ITGH | Tyler)",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "fivem-websocket-test-client": "file:"
+  }
+}

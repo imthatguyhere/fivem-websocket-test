@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiveM WebSocket Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .status {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .connected {
+            background-color: rgba(0, 128, 0, 0.7);
+        }
+        .disconnected {
+            background-color: rgba(255, 0, 0, 0.7);
+        }
+        .log {
+            height: 300px;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 5px;
+        }
+        .send {
+            background-color: rgba(0, 0, 255, 0.7);
+        }
+        .receive {
+            background-color: rgba(128, 0, 128, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>FiveM WebSocket Test</h1>
+        <div id="status" class="status disconnected">Disconnected</div>
+        <div id="log" class="log"></div>
+    </div>
+</body>
+</html>
