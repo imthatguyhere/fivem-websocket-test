@@ -46,7 +46,7 @@ cargo doc --open
 
 This will build — then open — the documentation, in your default web browser.
 
-You can then use [Open test_websocket_server Documentation.bat](../target/doc/Open%20test_websocket_server%20Documentation.bat) (for windows) or [Open test_websocket_server Documentation.sh](../target/doc/Open%20test_websocket_server%20Documentation.sh) (for Linux) to open the documentation, in your default web browser.
+You can then use [Open test_websocket_server Documentation.bat](target/doc/Open%20test_websocket_server%20Documentation.bat) (for windows) or [Open test_websocket_server Documentation.sh](target/doc/Open%20test_websocket_server%20Documentation.sh) (for Linux) to open the documentation, in your default web browser.
 
 ## License and More Information
 
