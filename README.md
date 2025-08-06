@@ -10,6 +10,10 @@ This repository contains everything needed to test a client resource in FiveM us
 2. `test_websocket_server` is a simple websocket server that can be used to test the client resource, so build it, or run it, with cargo.
 3. `ITGH_websocket_test_client` is a simple client resource that can be used to test the websocket server, read it's readme for more information.
 
+## Media
+
+[![example of it working](https://files.catbox.moe/q3u91k.png)](https://files.catbox.moe/q3u91k.png)
+
 ## 📜 License Summary: ND-NCAAP v1.0
 
 ```plaintext
