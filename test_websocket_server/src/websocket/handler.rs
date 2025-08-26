@@ -7,6 +7,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::time::{interval, Duration};
 use crate::config::Config;
+use serde_json::json;
 use tracing;
 use tokio_util::sync::CancellationToken;
 
@@ -29,11 +30,14 @@ pub async fn handle_socket(socket: WebSocket, config: Arc<Config>) {
         loop {
             tokio::select! {
                 _ = ticker.tick() => {
-                    let timestamp = Local::now();
-                    let msg = format!("💓 Heartbeat Sent @ {}", timestamp.format("%Y-%m-%d--%H-%M-%S"));
-                    tracing::info!("{}", msg);
+                    //=-- Build JSON heartbeat payload
+                    let payload = json!({
+                        "type": "heartbeat",
+                        "data": "request",
+                    }).to_string();
+                    tracing::info!("💓 Sending heartbeat JSON: {}", payload);
                     let mut guard = hb_sender.lock().await;
-                    if guard.send(Message::Text(msg.into())).await.is_err() {
+                    if guard.send(Message::Text(payload.into())).await.is_err() {
                         tracing::warn!("❌ Client disconnected during heartbeat");
                         break;
                     }
