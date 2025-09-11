@@ -49,9 +49,8 @@ pub fn register_from_file(reg: &mut CommandRegistry, path: &str) { //=--
     //=-- Existing primary names from the registry to warn on overrides
     let existing: HashSet<String> = reg.primary_names_distinct().into_iter().collect();
 
-    //=-- Track duplicates within the file and list of dynamic names for logging/command
-    let mut seen_names: HashSet<String> = HashSet::new();
-    let mut seen_aliases: HashSet<String> = HashSet::new();
+    //=-- Track duplicate keywords (names and aliases) within the file and list of dynamic names for logging/command
+    let mut seen_keywords: HashSet<String> = HashSet::new();
     let mut dynamic_names: Vec<String> = Vec::new();
 
     for cmd in parsed.payload_commands.into_iter() {
@@ -60,13 +59,10 @@ pub fn register_from_file(reg: &mut CommandRegistry, path: &str) { //=--
         keys.extend(cmd.aliases.clone());
         let key_refs: Vec<&str> = keys.iter().map(|s| s.as_str()).collect();
 
-        //=-- Check duplicates within the file
-        if !seen_names.insert(cmd.name.clone()) {
-            tracing::warn!("⚠️ Duplicate command name in commands.toml: '{}' (later one wins)", cmd.name);
-        }
-        for al in &cmd.aliases {
-            if !seen_aliases.insert(al.clone()) {
-                tracing::warn!("⚠️ Duplicate alias in commands.toml: '{}' (later one wins)", al);
+        //=-- Check duplicate keywords within the file (names and aliases must be unique) //=--
+        for keyword in &keys {
+            if !seen_keywords.insert(keyword.clone()) {
+                tracing::warn!("⚠️ Duplicate command keyword in commands.toml: '{}' (later one wins)", keyword);
             }
         }
 
