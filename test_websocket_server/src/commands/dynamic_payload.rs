@@ -79,7 +79,7 @@ pub fn register_from_file(reg: &mut CommandRegistry, path: &str) { //=--
         let builder = move || -> String {
             if let Some(pl) = &cmd.payload {
                 //=-- If given, use literal payload value
-                pl.clone().to_string()
+                pl.to_string()
             } else {
                 let t = cmd.type_.clone().unwrap_or_else(|| "custom".to_string());
                 let d = cmd.data.clone().unwrap_or(serde_json::Value::Null);
