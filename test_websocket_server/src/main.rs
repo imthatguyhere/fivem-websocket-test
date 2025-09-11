@@ -23,6 +23,14 @@ use tokio::sync::broadcast; //=-- Broadcast channel for manual sends
 use tokio_util::sync::CancellationToken; //=-- Graceful shutdown token
 use std::time::Duration; //=-- Help cache TTL
 
+/// Helper to load dynamic payload commands and (re-)register help so it reflects the latest registry //=--
+fn load_dynamic_commands(reg: &mut CommandRegistry, fancy_help: bool, help_ttl: Duration) { //=--
+  //=-- Load dynamic payload commands from commands.toml (if present)
+  crate::commands::dynamic_payload::register_from_file(reg, "commands.toml");
+  //=-- Register help after dynamic commands so it captures the latest commands list
+  crate::commands::help::register(reg, fancy_help, help_ttl);
+}
+
 /// Application entry point
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -98,9 +106,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
       reg.register(&["reload", "rl"], "Reload dynamic payload commands from commands.toml", |_ctx, _| {
         tracing::info!("🔁 Reloading dynamic payload commands...");
       });
-      //=-- Load dynamic payload commands from commands.toml (if present)
-      crate::commands::dynamic_payload::register_from_file(&mut reg, "commands.toml");
-      crate::commands::help::register(&mut reg, fancy_help_on, help_ttl_spawn);
+      //=-- Load dynamic commands and help
+      load_dynamic_commands(&mut reg, fancy_help_on, help_ttl_spawn);
     }
     //=-- Supplier for rendering help on demand (used by help handler's TTL cache)
     let help_supplier = {
@@ -133,9 +140,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             "reload" | "rl" => {
               {
                 let mut reg = commands.write().expect("commands lock poisoned");
-                crate::commands::dynamic_payload::register_from_file(&mut reg, "commands.toml");
-                //=-- Re-register help so it stays latest; handler will also refresh by TTL
-                crate::commands::help::register(&mut reg, fancy_help_on, help_ttl_spawn);
+                //=-- Reload dynamic commands and help
+                load_dynamic_commands(&mut reg, fancy_help_on, help_ttl_spawn);
               }
               {
                 let reg = commands.read().expect("commands lock poisoned");
