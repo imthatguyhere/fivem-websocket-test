@@ -143,7 +143,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
               }
             }
             Err(e) => {
-              tracing::warn!("⚠️ Invalid JSON - not sent: {} | error: {}", trimmed, e);
+              //=-- If it doesn't even look like JSON, tell the user the command doesn't exist
+              match trimmed.chars().next() {
+                Some('{') | Some('[') | Some('"') | Some('t') | Some('f') | Some('n') | Some('-') | Some('0'..='9') => {
+                  tracing::warn!("⚠️ Invalid JSON - not sent: {} | error: {}", trimmed, e);
+                }
+                _ => {
+                  tracing::warn!("⚠️ Command doesn't exist: {} — type 'help' for a list of commands", trimmed);
+                }
+              }
             }
           }
         }
