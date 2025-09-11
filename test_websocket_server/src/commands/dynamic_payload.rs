@@ -81,8 +81,8 @@ pub fn register_from_file(reg: &mut CommandRegistry, path: &str) { //=--
                 //=-- If given, use literal payload value
                 pl.to_string()
             } else {
-                let t = cmd.type_.clone().unwrap_or_else(|| "custom".to_string());
-                let d = cmd.data.clone().unwrap_or(serde_json::Value::Null);
+                let t = cmd.type_.unwrap_or_else(|| "custom".to_string());
+                let d = cmd.data.unwrap_or(serde_json::Value::Null);
                 json!({ "type": t, "data": d }).to_string()
             }
         };
