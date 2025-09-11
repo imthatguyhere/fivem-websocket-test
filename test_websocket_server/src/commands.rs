@@ -18,6 +18,7 @@ pub struct CommandContext { //=--
     pub tx: broadcast::Sender<Utf8Bytes>, //=-- JSON broadcast channel
     pub ctrl_tx: broadcast::Sender<ControlCommand>, //=-- Control channel
     pub shutdown: tokio_util::sync::CancellationToken, //=-- Shutdown token
+    pub help_supplier: Arc<dyn Fn(bool) -> String + Send + Sync + 'static>, //=-- Function to render help text on demand
 }
 
 type CommandHandler = Arc<dyn Fn(&CommandContext, &str) + Send + Sync + 'static>; //=--

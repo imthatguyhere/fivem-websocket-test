@@ -8,7 +8,7 @@ mod commands;
 use axum::{routing::get, Router};
 use axum::extract::ws::Utf8Bytes; //=-- Use Utf8Bytes for axum 0.8 text frames
 use std::net::SocketAddr;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use tokio::net::TcpListener;
 use crate::config::Config;
 use tracing_subscriber;
@@ -85,23 +85,37 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mut reader = BufReader::new(stdin);
     let mut line = String::new();
 
-    //=-- Build console command registry
-    let ctx = CommandContext { tx: tx.clone(), ctrl_tx: ctrl_tx.clone(), shutdown: stdin_shutdown.clone() };
-    let mut commands = CommandRegistry::new();
-    //=-- Register commands from submodules
-    crate::commands::show_config::register(&mut commands, shared_cfg.clone());
-    crate::commands::send_heartbeat::register(&mut commands);
-    crate::commands::disconnect::register(&mut commands);
-    crate::commands::quit::register(&mut commands);
-    //=-- Register a user-facing reload command (actual work is handled below)
-    commands.register(&["reload", "rl"], "Reload dynamic payload commands from commands.toml", |_ctx, _| {
-      tracing::info!("🔁 Reloading dynamic payload commands...");
-    });
-    //=-- Load dynamic payload commands from commands.toml (if present)
-    crate::commands::dynamic_payload::register_from_file(&mut commands, "commands.toml");
-    crate::commands::help::register(&mut commands, fancy_help_on, help_ttl_spawn);
+    //=-- Build console command registry (shared for help supplier)
+    let commands = Arc::new(RwLock::new(CommandRegistry::new()));
+    {
+      let mut reg = commands.write().expect("commands lock poisoned");
+      //=-- Register commands from submodules
+      crate::commands::show_config::register(&mut reg, shared_cfg.clone());
+      crate::commands::send_heartbeat::register(&mut reg);
+      crate::commands::disconnect::register(&mut reg);
+      crate::commands::quit::register(&mut reg);
+      //=-- Register a user-facing reload command (actual work is handled below)
+      reg.register(&["reload", "rl"], "Reload dynamic payload commands from commands.toml", |_ctx, _| {
+        tracing::info!("🔁 Reloading dynamic payload commands...");
+      });
+      //=-- Load dynamic payload commands from commands.toml (if present)
+      crate::commands::dynamic_payload::register_from_file(&mut reg, "commands.toml");
+      crate::commands::help::register(&mut reg, fancy_help_on, help_ttl_spawn);
+    }
+    //=-- Supplier for rendering help on demand (used by help handler's TTL cache)
+    let help_supplier = {
+      let commands = commands.clone();
+      Arc::new(move |fancy: bool| {
+        let reg = commands.read().expect("commands lock poisoned");
+        reg.help_text_with_fancy(fancy)
+      })
+    };
+    let ctx = CommandContext { tx: tx.clone(), ctrl_tx: ctrl_tx.clone(), shutdown: stdin_shutdown.clone(), help_supplier };
     //=-- Log all primary command names loaded at boot
-    tracing::info!("🧩 Commands loaded: {}", commands.primary_names_distinct().join(", "));
+    {
+      let reg = commands.read().expect("commands lock poisoned");
+      tracing::info!("🧩 Commands loaded: {}", reg.primary_names_distinct().join(", "));
+    }
 
     loop {
       line.clear();
@@ -117,20 +131,29 @@ async fn main() -> Result<(), Box<dyn Error>> {
           //=-- Intercept reload so we can mutate the registry in-place
           match trimmed.to_ascii_lowercase().as_str() {
             "reload" | "rl" => {
-              crate::commands::dynamic_payload::register_from_file(&mut commands, "commands.toml");
-              //=-- Re-register help so it captures the new command list
-              crate::commands::help::register(&mut commands, fancy_help_on, help_ttl_spawn);
-              //=-- Log updated list after reload
-              tracing::info!("🧩 Commands now: {}", commands.primary_names_distinct().join(", "));
+              {
+                let mut reg = commands.write().expect("commands lock poisoned");
+                crate::commands::dynamic_payload::register_from_file(&mut reg, "commands.toml");
+                //=-- Re-register help so it stays latest; handler will also refresh by TTL
+                crate::commands::help::register(&mut reg, fancy_help_on, help_ttl_spawn);
+              }
+              {
+                let reg = commands.read().expect("commands lock poisoned");
+                //=-- Log updated list after reload
+                tracing::info!("🧩 Commands now: {}", reg.primary_names_distinct().join(", "));
+              }
               tracing::info!("✅ Reload complete");
               continue;
             }
             _ => {}
           }
           //=-- Try command registry first
-          if commands.parse_and_execute(trimmed, &ctx) {
-            if ctx.shutdown.is_cancelled() { break; }
-            continue;
+          {
+            let reg = commands.read().expect("commands lock poisoned");
+            if reg.parse_and_execute(trimmed, &ctx) {
+              if ctx.shutdown.is_cancelled() { break; }
+              continue;
+            }
           }
           //=-- Validate JSON before broadcasting
           match serde_json::from_str::<serde_json::Value>(trimmed) {
