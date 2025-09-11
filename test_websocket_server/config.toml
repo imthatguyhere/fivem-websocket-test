@@ -1,3 +1,5 @@
 heartbeat_interval_secs     = 60 #=-- Interval in seconds between heartbeat messages
 bind_ip                     = "127.0.0.1"
 bind_port                   = 63325
+fancy_help                  = true  #=-- Use coloured ANSI-styled help output in console
+help_cache_secs             = 60    #=-- Cache TTL for help text (seconds)
