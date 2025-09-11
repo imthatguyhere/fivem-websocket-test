@@ -1,11 +1,11 @@
 //! Module for loading application configuration from `config.toml`.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::error::Error;
 
 /// Configuration loaded from `config.toml`
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     /// Interval in seconds between heartbeat messages
     pub heartbeat_interval_secs: u64,
