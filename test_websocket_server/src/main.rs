@@ -23,8 +23,8 @@ use tokio::sync::broadcast; //=-- Broadcast channel for manual sends
 use tokio_util::sync::CancellationToken; //=-- Graceful shutdown token
 use std::time::Duration; //=-- Help cache TTL
 
-/// Helper to load dynamic payload commands and (re-)register help so it reflects the latest registry //=--
-fn load_dynamic_commands(reg: &mut CommandRegistry, fancy_help: bool, help_ttl: Duration) { //=--
+/// Helper to load dynamic payload commands and (re-)register help so it reflects the latest registry
+fn load_dynamic_commands(reg: &mut CommandRegistry, fancy_help: bool, help_ttl: Duration) {
   //=-- Load dynamic payload commands from commands.toml (if present)
   crate::commands::dynamic_payload::register_from_file(reg, "commands.toml");
   //=-- Register help after dynamic commands so it captures the latest commands list
@@ -102,9 +102,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
       crate::commands::send_heartbeat::register(&mut reg);
       crate::commands::disconnect::register(&mut reg);
       crate::commands::quit::register(&mut reg);
-      //=-- Register a user-facing reload command (actual work is handled below)
-      reg.register(&["reload", "rl"], "Reload dynamic payload commands from commands.toml", |_ctx, _| {
-        tracing::info!("🔁 Reloading dynamic payload commands...");
+      //=-- Register a reload command that triggers actual reload via context closure
+      reg.register(&["reload", "rl"], "Reload dynamic payload commands from commands.toml", move |ctx, _| {
+        (ctx.reload_fn)();
       });
       //=-- Load dynamic commands and help
       load_dynamic_commands(&mut reg, fancy_help_on, help_ttl_spawn);
@@ -117,7 +117,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
         reg.help_text_with_fancy(fancy)
       })
     };
-    let ctx = CommandContext { tx: tx.clone(), ctrl_tx: ctrl_tx.clone(), shutdown: stdin_shutdown.clone(), help_supplier };
+    //=-- Closure to perform reload without holding locks during handler execution
+    let reload_fn = {
+      let commands = commands.clone();
+      Arc::new(move || {
+        tracing::info!("🔁 Reloading dynamic payload commands...");
+        {
+          let mut reg = commands.write().expect("commands lock poisoned");
+          //=-- Reload dynamic commands and help
+          load_dynamic_commands(&mut reg, fancy_help_on, help_ttl_spawn);
+        }
+        {
+          let reg = commands.read().expect("commands lock poisoned");
+          tracing::info!("🧩 Commands now: {}", reg.primary_names_distinct().join(", "));
+        }
+        tracing::info!("✅ Reload complete");
+      })
+    };
+    let ctx = CommandContext { tx: tx.clone(), ctrl_tx: ctrl_tx.clone(), shutdown: stdin_shutdown.clone(), help_supplier, reload_fn };
     //=-- Log all primary command names loaded at boot
     {
       let reg = commands.read().expect("commands lock poisoned");
@@ -135,31 +152,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Ok(_) => {
           let trimmed = line.trim();
           if trimmed.is_empty() { continue; }
-          //=-- Intercept reload so we can mutate the registry in-place
-          match trimmed.to_ascii_lowercase().as_str() {
-            "reload" | "rl" => {
-              {
-                let mut reg = commands.write().expect("commands lock poisoned");
-                //=-- Reload dynamic commands and help
-                load_dynamic_commands(&mut reg, fancy_help_on, help_ttl_spawn);
-              }
-              {
-                let reg = commands.read().expect("commands lock poisoned");
-                //=-- Log updated list after reload
-                tracing::info!("🧩 Commands now: {}", reg.primary_names_distinct().join(", "));
-              }
-              tracing::info!("✅ Reload complete");
-              continue;
-            }
-            _ => {}
-          }
-          //=-- Try command registry first
-          {
+          //=-- Try command registry first (fetch handler, then drop lock before executing)
+          let handler_opt = {
             let reg = commands.read().expect("commands lock poisoned");
-            if reg.parse_and_execute(trimmed, &ctx) {
-              if ctx.shutdown.is_cancelled() { break; }
-              continue;
-            }
+            reg.handler_for(trimmed)
+          };
+          if let Some(handler) = handler_opt {
+            handler(&ctx, trimmed);
+            if ctx.shutdown.is_cancelled() { break; }
+            continue;
           }
           //=-- Validate JSON before broadcasting
           match serde_json::from_str::<serde_json::Value>(trimmed) {

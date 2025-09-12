@@ -1,11 +1,11 @@
 //! Console command: config/cfg
 
 use crate::commands::CommandRegistry; //=-- Access registry
-use std::sync::Arc; //=--
-use crate::config::Config; //=--
+use std::sync::Arc;
+use crate::config::Config;
 
 /// Register the config command (aliases: "config", "cfg")
-pub fn register(reg: &mut CommandRegistry, cfg: Arc<Config>) { //=--
+pub fn register(reg: &mut CommandRegistry, cfg: Arc<Config>) {
     reg.register(&["config", "cfg"], "Show current server configuration", move |_ctx, _| {
         //=-- Serialize the config to JSON so we can print KVPs dynamically
         match serde_json::to_value(&*cfg) {

@@ -5,7 +5,7 @@ use std::sync::{Arc, Mutex}; //=-- Cache guard
 use std::time::{Instant, Duration}; //=-- Cache TTL
 
 /// Register the help command with optional fancy styling and a cache TTL
-pub fn register(reg: &mut CommandRegistry, fancy: bool, ttl: Duration) { //=--
+pub fn register(reg: &mut CommandRegistry, fancy: bool, ttl: Duration) {
     //=-- Seed cache with current help text; allow refresh via ctx.help_supplier when TTL expires
     let initial = reg.help_text_with_fancy(fancy);
     let cache: Arc<Mutex<(Instant, String)>> = Arc::new(Mutex::new((Instant::now(), initial)));

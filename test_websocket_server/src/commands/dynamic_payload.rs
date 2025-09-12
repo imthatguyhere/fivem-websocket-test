@@ -1,19 +1,19 @@
-//! Dynamic payload commands loaded from commands.toml //=--
+//! Dynamic payload commands loaded from commands.toml
 
-use crate::commands::CommandRegistry; //=--
-use serde::Deserialize; //=--
-use serde_json::json; //=--
-use std::fs; //=--
+use crate::commands::CommandRegistry;
+use serde::Deserialize;
+use serde_json::json;
+use std::fs;
 use std::collections::HashSet; //=-- Duplicate detection
 
 #[derive(Debug, Deserialize)]
-struct CommandsFile { //=--
+struct CommandsFile {
     #[serde(default)]
     payload_commands: Vec<PayloadCommand>, //=-- Array of payload commands
 }
 
 #[derive(Debug, Deserialize, Clone)]
-struct PayloadCommand { //=--
+struct PayloadCommand {
     name: String, //=-- Primary command name
     #[serde(default)]
     aliases: Vec<String>, //=-- Optional aliases
@@ -28,8 +28,8 @@ struct PayloadCommand { //=--
     description: Option<String>, //=-- Optional custom description
 }
 
-/// Load commands from a TOML file path and register them with the command registry. //=--
-pub fn register_from_file(reg: &mut CommandRegistry, path: &str) { //=--
+/// Load commands from a TOML file path and register them with the command registry.
+pub fn register_from_file(reg: &mut CommandRegistry, path: &str) {
     let content = match fs::read_to_string(path) {
         Ok(s) => s,
         Err(e) => {
@@ -59,7 +59,7 @@ pub fn register_from_file(reg: &mut CommandRegistry, path: &str) { //=--
         keys.extend(cmd.aliases.clone());
         let key_refs: Vec<&str> = keys.iter().map(|s| s.as_str()).collect();
 
-        //=-- Check duplicate keywords within the file (names and aliases must be unique) //=--
+        //=-- Check duplicate keywords within the file (names and aliases must be unique)
         for keyword in &keys {
             if !seen_keywords.insert(keyword.clone()) {
                 tracing::warn!("⚠️ Duplicate command keyword in commands.toml: '{}' (later one wins)", keyword);

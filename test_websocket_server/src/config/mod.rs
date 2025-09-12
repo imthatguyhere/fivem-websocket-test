@@ -37,10 +37,10 @@ impl Config {
 }
 
 /// Default for `fancy_help` so older config files keep working
-fn default_fancy_help() -> bool { //=--
+fn default_fancy_help() -> bool {
     true
 }
 /// Default cache TTL for help text generation (in seconds)
-fn default_help_cache_secs() -> u64 { //=--
+fn default_help_cache_secs() -> u64 {
     60
 }
