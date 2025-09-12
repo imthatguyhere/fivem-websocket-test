@@ -8,39 +8,40 @@ pub mod show_config;    //=-- config, cfg
 pub mod help;       //=-- help, ?
 pub mod dynamic_payload; //=-- commands.toml-backed payload commands
 
-use std::sync::Arc; //=--
-use tokio::sync::broadcast; //=--
+use std::sync::Arc;
+use tokio::sync::broadcast;
 use axum::extract::ws::Utf8Bytes; //=-- For broadcasting text frames
-use crate::state::ControlCommand; //=--
+use crate::state::ControlCommand;
 
 /// Execution context passed to command handlers
-pub struct CommandContext { //=--
+pub struct CommandContext {
     pub tx: broadcast::Sender<Utf8Bytes>, //=-- JSON broadcast channel
     pub ctrl_tx: broadcast::Sender<ControlCommand>, //=-- Control channel
     pub shutdown: tokio_util::sync::CancellationToken, //=-- Shutdown token
     pub help_supplier: Arc<dyn Fn(bool) -> String + Send + Sync + 'static>, //=-- Function to render help text on demand
+    pub reload_fn: Arc<dyn Fn() + Send + Sync + 'static>, //=-- Function to perform dynamic commands reload
 }
 
-type CommandHandler = Arc<dyn Fn(&CommandContext, &str) + Send + Sync + 'static>; //=--
+type CommandHandler = Arc<dyn Fn(&CommandContext, &str) + Send + Sync + 'static>;
 
-struct Command { //=--
+struct Command {
     keywords: Vec<String>, //=-- canonical first, aliases after
     description: String, //=-- human description
     handler: CommandHandler, //=-- behavior
 }
 
 /// Registry for console commands
-pub struct CommandRegistry { //=--
+pub struct CommandRegistry {
     commands: Vec<Command>, //=-- ordered list
 }
 
-impl CommandRegistry { //=--
-    pub fn new() -> Self { //=--
+impl CommandRegistry {
+    pub fn new() -> Self {
         Self { commands: Vec::new() }
     }
 
     /// Register a command with keywords and description
-    pub fn register<H>(&mut self, keywords: &[&str], description: &str, handler: H) //=--
+    pub fn register<H>(&mut self, keywords: &[&str], description: &str, handler: H)
     where
         H: Fn(&CommandContext, &str) + Send + Sync + 'static,
     {
@@ -52,22 +53,9 @@ impl CommandRegistry { //=--
         });
     }
 
-    /// Attempt to parse and execute a command. Returns true if consumed.
-    pub fn parse_and_execute(&self, input: &str, ctx: &CommandContext) -> bool { //=--
-        let needle = input.trim().to_ascii_lowercase();
-        if needle.is_empty() { return false; }
-        //=-- Search from the end so later-registered commands take precedence (useful for reloads)
-        if let Some(cmd) = self.commands.iter().rev().find(|c| c.keywords.iter().any(|k| k == &needle)) {
-            (cmd.handler)(ctx, input);
-            true
-        } else {
-            false
-        }
-    }
-
-    /// Return the list of distinct primary command names, with latest registration winning //=--
-    pub fn primary_names_distinct(&self) -> Vec<String> { //=--
-        use std::collections::HashSet; //=--
+    /// Return the list of distinct primary command names, with latest registration winning
+    pub fn primary_names_distinct(&self) -> Vec<String> {
+        use std::collections::HashSet;
         let mut seen = HashSet::new();
         let mut out: Vec<String> = Vec::new();
         //=-- Walk from the end so later registrations win, then reverse to keep natural order
@@ -82,8 +70,19 @@ impl CommandRegistry { //=--
         out
     }
 
+    /// Return a cloned handler Arc for the given input, if a command matches
+    pub fn handler_for(&self, input: &str) -> Option<Arc<dyn Fn(&CommandContext, &str) + Send + Sync + 'static>> {
+        let needle = input.trim().to_ascii_lowercase();
+        if needle.is_empty() { return None; }
+        self.commands
+            .iter()
+            .rev()
+            .find(|c| c.keywords.iter().any(|k| k == &needle))
+            .map(|c| c.handler.clone())
+    }
+ 
     /// Build a help text with optional ANSI styling
-    pub fn help_text_with_fancy(&self, fancy: bool) -> String { //=--
+    pub fn help_text_with_fancy(&self, fancy: bool) -> String {
         //=-- Styles helper; when fancy=false, all styles become empty strings
         #[allow(dead_code)] //=-- Localized allow: some style fields may be unused depending on formatting
         struct Styles<'a> { 
