@@ -75,20 +75,17 @@ pub fn register_from_file(reg: &mut CommandRegistry, path: &str) {
             if let Some(t) = &cmd.type_ { format!("Send predefined payload: {}", t) } else { "Send predefined payload".to_string() }
         });
 
-        //=-- Build the payload closure now; owned clone moved into closure
-        let builder = move || -> String {
-            if let Some(pl) = &cmd.payload {
-                //=-- If given, use literal payload value
-                pl.to_string()
-            } else {
-                let t = cmd.type_.unwrap_or_else(|| "custom".to_string());
-                let d = cmd.data.unwrap_or(serde_json::Value::Null);
-                json!({ "type": t, "data": d }).to_string()
-            }
+        //=-- Precompute the payload now and capture it via clone in the handler
+        let payload_str: String = if let Some(pl) = &cmd.payload {
+            pl.clone().to_string()
+        } else {
+            let t = cmd.type_.clone().unwrap_or_else(|| "custom".to_string());
+            let d = cmd.data.clone().unwrap_or(serde_json::Value::Null);
+            json!({ "type": t, "data": d }).to_string()
         };
 
         reg.register(&key_refs, &desc, move |ctx, _| {
-            let payload = builder();
+            let payload = payload_str.clone();
             let _ = ctx.tx.send(payload.clone().into());
             tracing::info!("📤 Broadcast payload (commands.toml): {}", payload);
         });
