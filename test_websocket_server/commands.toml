@@ -1,0 +1,52 @@
+#//=-- Dynamic payload commands configuration
+#//=-- Each entry under [[payload_commands]] defines a console command that broadcasts a JSON payload
+
+#//=-- Minimal example: builds {"type":"pong","data":{"reply":"ok"}}
+[[payload_commands]]
+name = "pong"
+aliases = ["pg"]
+#//=-- Shorthand fields, combined into a payload object if `payload` is not specified
+type = "pong"
+#//=-- `data` can be any JSON value: string/number/bool/null/object/array
+#//=-- For objects/arrays, TOML inline tables/arrays are handier
+#//=-- This becomes the JSON value of the `data` property
+# note: use unquoted keys in inline tables for TOML; serde converts them to JSON
+#//=-- Example: {"reply":"ok"}
+data = { reply = "ok" }
+
+#//=-- Full payload override: send exactly this JSON value as-is
+[[payload_commands]]
+name = "announce"
+aliases = ["ann"]
+description = "Send a server announcement payload"
+#//=-- When `payload` is provided, `type` and `data` are ignored
+#//=-- Below becomes {"type":"announcement","data":{"message":"Server restart in 5m"}}
+payload = { type = "announcement", data = { message = "Server restart in 5m" } }
+
+#//=-- Type-only commands: emit only a "type" property with no "data"
+[[payload_commands]]
+name = "name"
+#//=-- Emits {"type":"name"}
+type = "name"
+
+[[payload_commands]]
+name = "vehicle"
+#//=-- Emits {"type":"vehicle"}
+type = "vehicle"
+
+[[payload_commands]]
+name = "entityMatrix"
+#//=-- Emits {"type":"entityMatrix"}
+type = "entityMatrix"
+
+[[payload_commands]]
+name = "camMatrix"
+#//=-- Emits {"type":"camMatrix"}
+type = "camMatrix"
+
+#//=-- Another example with array data
+[[payload_commands]]
+name = "batch"
+#//=-- Results in {"type":"batch","data":[1,2,3]}
+type = "batch"
+data = [1, 2, 3]

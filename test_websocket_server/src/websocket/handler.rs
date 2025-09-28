@@ -6,7 +6,7 @@ use futures::{SinkExt, StreamExt};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tokio::time::{interval, Duration};
-use crate::config::Config;
+use crate::state::{AppState, ControlCommand}; //=-- Access config and control broadcast channel
 use serde_json::json;
 use tracing;
 use tokio_util::sync::CancellationToken;
@@ -15,14 +15,21 @@ use tokio_util::sync::CancellationToken;
 ///
 /// - Sends heartbeat every `heartbeat_interval_secs`
 /// - Logs any incoming messages to stdout
-pub async fn handle_socket(socket: WebSocket, config: Arc<Config>) {
-    let interval_secs = config.heartbeat_interval_secs;
+pub async fn handle_socket(socket: WebSocket, state: Arc<AppState>) {
+    let interval_secs = state.config.heartbeat_interval_secs;
     let (sender, mut receiver) = socket.split();
     let sender = Arc::new(Mutex::new(sender));
 
     let hb_sender = sender.clone();
     let cancel_token = CancellationToken::new();
     let heartbeat_cancel = cancel_token.clone();
+    let console_cancel = cancel_token.clone(); //=-- Cancel for console forwarder
+    let ctrl_cancel = cancel_token.clone(); //=-- Cancel for control listener
+
+    //=-- Subscribe to console broadcast channel
+    let mut rx = state.tx.subscribe();
+    let console_sender = sender.clone();
+    let close_sender = sender.clone(); //=-- Sender used to close connection on control
 
     //=-- Spawn the heartbeat task
     tokio::spawn(async move {
@@ -44,6 +51,63 @@ pub async fn handle_socket(socket: WebSocket, config: Arc<Config>) {
                 }
                 _ = heartbeat_cancel.cancelled() => {
                     tracing::info!("🛑 Heartbeat task cancelled");
+                    break;
+                }
+            }
+        }
+    });
+
+    //=-- Forward console-broadcast JSON to this client
+    tokio::spawn(async move {
+        loop {
+            tokio::select! {
+                res = rx.recv() => {
+                    match res {
+                        Ok(msg) => {
+                            let mut guard = console_sender.lock().await;
+                            if guard.send(Message::Text(msg.into())).await.is_err() {
+                                tracing::warn!("❌ Client disconnected during console forward");
+                                break;
+                            }
+                        }
+                        Err(e) => {
+                            tracing::warn!("⚠️ Broadcast receive error: {}", e);
+                            break;
+                        }
+                    }
+                }
+                _ = console_cancel.cancelled() => {
+                    tracing::info!("🛑 Console forwarder cancelled");
+                    break;
+                }
+            }
+        }
+    });
+
+    //=-- Listen for control commands and close connection on demand
+    let mut ctrl_rx = state.ctrl_tx.subscribe();
+    tokio::spawn(async move {
+        loop {
+            tokio::select! {
+                cmd = ctrl_rx.recv() => {
+                    match cmd {
+                        Ok(ControlCommand::DisconnectAll) => {
+                            tracing::info!("🔌 Control: closing client connection");
+                            let mut guard = close_sender.lock().await;
+                            //=-- Best-effort send a Close frame, then close the sink
+                            let _ = guard.send(Message::Close(None)).await;
+                            let _ = guard.close().await;
+                            ctrl_cancel.cancel(); //=-- Cancel other tasks for this connection
+                            break;
+                        }
+                        Err(e) => {
+                            tracing::warn!("⚠️ Control channel receive error: {}", e);
+                            break;
+                        }
+                    }
+                }
+                _ = ctrl_cancel.cancelled() => {
+                    tracing::info!("🛑 Control listener cancelled");
                     break;
                 }
             }

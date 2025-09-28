@@ -4,7 +4,7 @@ version     = "1.0.0"
 edition     = "2021"
 
 [dependencies]
-tokio               = { version = "1",     features = ["rt-multi-thread", "macros", "net", "time", "sync"] }
+tokio               = { version = "1",     features = ["rt-multi-thread", "macros", "net", "time", "sync", "io-util"] }
 axum                = { version = "0.8.4", features = ["ws"] }
 hyper               = { version = "1.6.0", features = ["server"] }
 serde               = { version = "1",     features = ["derive"] }

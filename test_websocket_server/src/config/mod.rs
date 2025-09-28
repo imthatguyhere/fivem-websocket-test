@@ -1,11 +1,11 @@
 //! Module for loading application configuration from `config.toml`.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::error::Error;
 
 /// Configuration loaded from `config.toml`
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Config {
     /// Interval in seconds between heartbeat messages
     pub heartbeat_interval_secs: u64,
@@ -13,6 +13,12 @@ pub struct Config {
     pub bind_ip: String,
     /// Port the server will bind to
     pub bind_port: u16,
+    /// Toggle fancy ANSI-styled console help output
+    #[serde(default = "default_fancy_help")]
+    pub fancy_help: bool,
+    /// Seconds to cache the generated help text before regenerating
+    #[serde(default = "default_help_cache_secs")]
+    pub help_cache_secs: u64,
 }
 
 impl Config {
@@ -28,4 +34,13 @@ impl Config {
         let config = toml::from_str(&content)?;
         Ok(config)
     }
+}
+
+/// Default for `fancy_help` so older config files keep working
+fn default_fancy_help() -> bool {
+    true
+}
+/// Default cache TTL for help text generation (in seconds)
+fn default_help_cache_secs() -> u64 {
+    60
 }
